@@ -526,6 +526,20 @@ require("lazy").setup({
           })
         end,
       })
+
+      -- dbout result buffers start with the results collapsed into a single
+      -- fold (see db_ui#dbout#foldexpr). The bundled ftplugin only auto-opens
+      -- it the first time the filetype is set, so a same-buffer reload on a
+      -- repeat query (silent edit!) leaves it collapsed again. Force folds
+      -- open every time a dbout buffer is loaded/redisplayed, not just once.
+      vim.api.nvim_create_autocmd({ "FileType", "BufWinEnter", "BufReadPost" }, {
+        pattern = { "dbout", "*.dbout" },
+        callback = function()
+          if vim.bo.filetype == "dbout" then
+            vim.cmd("silent! normal! zR")
+          end
+        end,
+      })
     end,
   },
 
