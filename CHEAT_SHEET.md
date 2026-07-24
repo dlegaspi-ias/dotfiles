@@ -350,6 +350,17 @@ sqlite:///path/to/file.db
   ```
   Open a **new** terminal (or `source ~/.zshrc`) before relaunching Neovim —
   an already-running Neovim won't see the updated `PATH`.
+- **Result rows show as `+-- N lines: +---...` instead of a table**: that's a
+  closed Vim fold (`dbout` filetype auto-folds results), not missing data.
+  `zo`/`zR` opens it manually, or `:messages` confirms with `DB: Query ...
+  finished` (vs. `(no window?)` if the preview window genuinely closed
+  before the async query finished). `init.lua` now force-opens dbout folds
+  on every load/reload (`BufWinEnter`/`BufReadPost`), including repeat
+  queries reloaded in the same buffer, so this shouldn't recur.
+- **`E21: Cannot make changes, 'modifiable' is off`**: expected — dbout result
+  buffers are intentionally readonly. It means a keystroke landed in the
+  results window, not a bug. Use `yh`/`vic` to yank header/cell values
+  instead of editing.
 
 ## tmux
 
