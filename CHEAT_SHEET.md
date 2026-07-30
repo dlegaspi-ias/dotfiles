@@ -93,6 +93,22 @@
 | `<leader>tc` | Run all tests in class |
 | `<leader>dm` | Debug main class |
 
+### Rust (rustaceanvim)
+
+| Key | Action |
+|-----|--------|
+| `<leader>tm` | Run testable under cursor (`RustLsp testables`) |
+| `<leader>dm` | Debug runnable under cursor (`RustLsp debuggables`) |
+| `<leader>dT` | Debug last runnable again |
+| `<leader>ca` | Code action (rust-analyzer grouped menu) |
+| `K` | Hover + hover actions |
+| `<leader>rM` | Expand macro |
+| `<leader>rb` / `rr` / `rt` | `cargo build` / `run` / `test` |
+| `<leader>rc` / `rk` / `rf` | `cargo clean` / `clippy` / `fmt` |
+| `<leader>ct` / `cr` | crates.nvim: toggle info / reload |
+| `<leader>cv` / `cf` | crates.nvim: show versions / features popup |
+| `<leader>cu` / `cU` / `cA` | crates.nvim: update crate / upgrade crate / upgrade all |
+
 ### Debugging (DAP)
 
 | Key | Action |
@@ -195,6 +211,8 @@
 | `<leader>gg` | Open Lazygit (floating) |
 | `<leader>bb` | Gradle build |
 | `<leader>br` | Gradle bootRun |
+| `<leader>rb` | Cargo build |
+| `<leader>rr` | Cargo run |
 | `<leader>bt` | Gradle test |
 | `<leader>bc` | Gradle clean |
 
