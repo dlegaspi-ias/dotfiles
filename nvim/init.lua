@@ -56,7 +56,7 @@ require("lazy").setup({
     build = ":TSUpdate",
     config = function()
       require("nvim-treesitter.configs").setup({
-        ensure_installed = { "java", "groovy", "kotlin", "xml", "json", "yaml", "lua", "bash", "markdown" },
+        ensure_installed = { "java", "groovy", "kotlin", "rust", "toml", "xml", "json", "yaml", "lua", "bash", "markdown" },
         auto_install = true,
         highlight = { enable = true },
         indent = { enable = true },
@@ -86,6 +86,10 @@ require("lazy").setup({
     config = function()
       require("mason-lspconfig").setup({
         ensure_installed = { "jdtls", "lua_ls", "gradle_ls" },
+        -- rust_analyzer is intentionally NOT here: rustaceanvim manages its
+        -- own rust-analyzer client/config, and we're using the rustup-managed
+        -- rust-analyzer (not Mason's) so it stays version-matched to the
+        -- active toolchain.
         handlers = {
           -- Don't auto-configure jdtls; we handle it via nvim-jdtls
           jdtls = function() end,
@@ -304,6 +308,100 @@ require("lazy").setup({
       "nvim-neotest/neotest",
       "nvim-treesitter/nvim-treesitter",
     },
+  },
+
+  -- Rust-specific LSP/DAP/runnables (uses rustup-managed rust-analyzer +
+  -- Mason-managed codelldb, wired into the same nvim-dap set up for Java)
+  {
+    "mrcjkb/rustaceanvim",
+    version = "^6",
+    lazy = false, -- rustaceanvim sets itself up on FileType rust internally
+    ft = { "rust" },
+    dependencies = { "mfussenegger/nvim-dap" },
+    config = function()
+      local mason_registry = require("mason-registry")
+
+      -- Ensure codelldb is installed via Mason (same pattern as java-debug-adapter)
+      if not mason_registry.is_installed("codelldb") then
+        vim.notify("Installing codelldb via Mason...", vim.log.levels.INFO)
+        mason_registry.get_package("codelldb"):install()
+      end
+
+      local codelldb_path = mason_registry.get_package("codelldb"):get_install_path()
+      local codelldb_bin = codelldb_path .. "/extension/adapter/codelldb"
+      local liblldb_path = codelldb_path .. "/extension/lldb/lib/liblldb.dylib"
+
+      vim.g.rustaceanvim = {
+        tools = {
+          hover_actions = { auto_focus = true },
+        },
+        server = {
+          -- Use the rustup-managed rust-analyzer so it stays version-matched
+          -- to whatever toolchain `rustup default` points at.
+          cmd = function()
+            return { vim.fn.expand("~/.cargo/bin/rust-analyzer") }
+          end,
+          default_settings = {
+            ["rust-analyzer"] = {
+              cargo = { allFeatures = true, loadOutDirsFromCheck = true, runBuildScripts = true },
+              checkOnSave = true,
+              check = { command = "clippy" },
+              procMacro = { enable = true },
+            },
+          },
+          on_attach = function(_, bufnr)
+            local opts = { buffer = bufnr }
+            vim.keymap.set("n", "<leader>tm", function() vim.cmd.RustLsp("testables") end,
+              vim.tbl_extend("force", opts, { desc = "Run test (rustaceanvim)" }))
+            vim.keymap.set("n", "<leader>dm", function() vim.cmd.RustLsp({ "debuggables" }) end,
+              vim.tbl_extend("force", opts, { desc = "Debug runnable (rustaceanvim)" }))
+            vim.keymap.set("n", "<leader>dT", function() vim.cmd.RustLsp({ "debuggables", "last" }) end,
+              vim.tbl_extend("force", opts, { desc = "Debug last runnable" }))
+            vim.keymap.set("n", "<leader>ca", function() vim.cmd.RustLsp("codeAction") end,
+              vim.tbl_extend("force", opts, { desc = "Code action (rust-analyzer grouped)" }))
+            vim.keymap.set("n", "K", function() vim.cmd.RustLsp({ "hover", "actions" }) end,
+              vim.tbl_extend("force", opts, { desc = "Hover actions" }))
+            vim.keymap.set("n", "<leader>rM", function() vim.cmd.RustLsp("expandMacro") end,
+              vim.tbl_extend("force", opts, { desc = "Expand macro" }))
+          end,
+        },
+        dap = {
+          adapter = require("rustaceanvim.config").get_codelldb_adapter(codelldb_bin, liblldb_path),
+        },
+      }
+    end,
+  },
+
+  -- Cargo.toml dependency management (versions, completion, update checks)
+  {
+    "saecki/crates.nvim",
+    event = { "BufRead Cargo.toml" },
+    dependencies = { "hrsh7th/nvim-cmp" },
+    config = function()
+      require("crates").setup({
+        completion = {
+          cmp = { enabled = true },
+        },
+      })
+
+      vim.api.nvim_create_autocmd("FileType", {
+        pattern = "toml",
+        callback = function(ev)
+          if vim.fn.expand("%:t") ~= "Cargo.toml" then
+            return
+          end
+          local crates = require("crates")
+          local opts = { buffer = ev.buf }
+          vim.keymap.set("n", "<leader>ct", crates.toggle, vim.tbl_extend("force", opts, { desc = "Crates: toggle info" }))
+          vim.keymap.set("n", "<leader>cr", crates.reload, vim.tbl_extend("force", opts, { desc = "Crates: reload" }))
+          vim.keymap.set("n", "<leader>cv", crates.show_versions_popup, vim.tbl_extend("force", opts, { desc = "Crates: show versions" }))
+          vim.keymap.set("n", "<leader>cf", crates.show_features_popup, vim.tbl_extend("force", opts, { desc = "Crates: show features" }))
+          vim.keymap.set("n", "<leader>cu", crates.update_crate, vim.tbl_extend("force", opts, { desc = "Crates: update crate" }))
+          vim.keymap.set("n", "<leader>cU", crates.upgrade_crate, vim.tbl_extend("force", opts, { desc = "Crates: upgrade crate" }))
+          vim.keymap.set("n", "<leader>cA", crates.upgrade_all_crates, vim.tbl_extend("force", opts, { desc = "Crates: upgrade all" }))
+        end,
+      })
+    end,
   },
 
   -- Completion
@@ -608,6 +706,15 @@ vim.keymap.set("n", "<leader>bT", function()
   local cmd = string.format("./gradlew :test --tests \"%s\"", test_class)
   vim.cmd(string.format(":TermExec cmd='%s'", cmd))
 end, { desc = "Gradle test current class" })
+
+-- Cargo build commands (mirrors Gradle keymaps above; kept on a separate
+-- <leader>r* prefix since <leader>b* is already fully claimed by Gradle)
+vim.keymap.set("n", "<leader>rb", ":TermExec cmd='cargo build'<CR>", { desc = "Cargo build" })
+vim.keymap.set("n", "<leader>rr", ":TermExec cmd='cargo run'<CR>", { desc = "Cargo run" })
+vim.keymap.set("n", "<leader>rt", ":TermExec cmd='cargo test'<CR>", { desc = "Cargo test" })
+vim.keymap.set("n", "<leader>rc", ":TermExec cmd='cargo clean'<CR>", { desc = "Cargo clean" })
+vim.keymap.set("n", "<leader>rk", ":TermExec cmd='cargo clippy --all-targets --all-features'<CR>", { desc = "Cargo clippy" })
+vim.keymap.set("n", "<leader>rf", ":TermExec cmd='cargo fmt'<CR>", { desc = "Cargo fmt" })
 
 -- Move lines up/down in visual mode
 vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv", { desc = "Move line down" })
