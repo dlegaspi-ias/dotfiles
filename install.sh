@@ -7,7 +7,7 @@
 #
 # Usage:
 #   ./install.sh          # symlink everything
-#   ./install.sh nvim     # symlink just one target (nvim, tmux, starship)
+#   ./install.sh nvim     # symlink just one target (nvim, tmux, zellij, starship)
 
 set -euo pipefail
 
@@ -37,6 +37,10 @@ fi
 
 if [ "$target" = "all" ] || [ "$target" = "tmux" ]; then
   link "$REPO_DIR/tmux/tmux.conf" "$HOME/.tmux.conf"
+fi
+
+if [ "$target" = "all" ] || [ "$target" = "zellij" ]; then
+  link "$REPO_DIR/zellij/config.kdl" "$HOME/.config/zellij/config.kdl"
 fi
 
 if [ "$target" = "all" ] || [ "$target" = "starship" ]; then

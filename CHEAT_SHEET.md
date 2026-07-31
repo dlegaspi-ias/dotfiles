@@ -404,3 +404,47 @@ Config lives at `~/.tmux.conf`. Key settings:
 
 ### Troubleshooting
 - **"Warning: tmux extended-keys is off"** or **"extended-keys-format is xterm"** (seen when running pi inside tmux) → add both `set -g extended-keys on` and `set -g extended-keys-format csi-u` to `~/.tmux.conf`, then fully restart the tmux server (`tmux kill-server`, not just detach) since these are server-level options only read at startup.
+
+## Zellij
+
+Alternative multiplexer, kept **alongside** tmux (not a replacement) — used
+on-demand in whichever WezTerm tab wants it, not as WezTerm's default
+program (`config.default_prog` is intentionally left unset in
+`~/.config/wezterm/wezterm.lua` so every new WezTerm tab still opens a
+plain shell, same as before). Config lives at `~/.config/zellij/config.kdl`.
+
+### Gotcha: default keybindings collide with nvim/pi
+Zellij's out-of-the-box Normal-mode bindings intercept `Ctrl+h` (→ Move
+mode), `Ctrl+n` (→ Resize mode), `Ctrl+p` (→ Pane mode), `Ctrl+b` (→
+Tmux-compat mode), and `Ctrl+o` (→ Session mode) **before** they reach an
+app running inside a pane. Confirmed this breaks nvim-cmp's `<C-n>`/`<C-p>`
+completion navigation, nvim's `<C-h>` window-nav, and nvim's native
+`<C-o>` jump-back. Fixed by rebinding Zellij's own mode-switch triggers
+to `Alt+p/n/s/o/t/h/b` in `config.kdl`, freeing `Ctrl+letter` entirely for
+the app inside the pane. Verified live (nvim inside Zellij inside tmux):
+`Ctrl+n`/`Ctrl+p` correctly move the cmp completion selection, `Ctrl+h`
+passes through as a no-op, and Zellij's status bar never switches mode.
+- Alternative if you don't want to touch config: `Ctrl+g` toggles Zellij's
+  built-in **Locked** mode, where *all* keys pass straight through
+  untouched (Zellij's own hotkeys go dormant until `Ctrl+g` again).
+
+### Theme / fonts
+- Fonts/icons/Nerd Font glyphs are inherited automatically from WezTerm
+  (`config.font` in `wezterm.lua`) — no separate config needed, Zellij just
+  renders text/Unicode like any other terminal app.
+- Colors are **not** inherited automatically — Zellij has its own separate
+  theming system. Set to the built-in `tokyo-night` theme to match
+  WezTerm's `color_scheme = "Tokyo Night"`.
+
+### Common commands
+| Command | Action |
+|---|---|
+| `zellij` / `zellij -s <name>` | Start a new (optionally named) session |
+| `zellij list-sessions` (`zellij ls`) | List sessions |
+| `zellij attach <name>` | Reattach to a session |
+| `zellij kill-session <name>` | Kill one session |
+| `zellij kill-all-sessions` | Kill all sessions |
+| `Ctrl+q` | Quit/detach from session |
+| `Ctrl+g` | Toggle Locked mode (full passthrough to the app in the pane) |
+| `Alt+p` / `Alt+t` / `Alt+n` / `Alt+h` / `Alt+s` / `Alt+o` | Pane / Tab / Resize / Move / Search / Session mode (remapped off `Ctrl+*`, see gotcha above) |
+

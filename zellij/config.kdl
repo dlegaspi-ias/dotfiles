@@ -1,0 +1,56 @@
+// Matches WezTerm's "Tokyo Night" color_scheme so Zellij's UI chrome
+// (tab bar, status bar, pane frames) doesn't clash visually.
+theme "tokyo-night"
+
+default_shell "zsh"
+pane_frames true
+mouse_mode true
+copy_on_select true
+scroll_buffer_size 10000
+
+// Zellij's out-of-the-box global bindings intercept Ctrl+h / Ctrl+n /
+// Ctrl+p / Ctrl+b / Ctrl+o in Normal mode to switch Zellij modes
+// (Move/Resize/Pane/Tmux-compat/Session respectively) BEFORE they ever
+// reach an app running inside a pane. That directly collides with:
+//   - nvim <C-h/j/k/l> window navigation (Ctrl+h swallowed)
+//   - nvim-cmp <C-n>/<C-p> completion select-next/prev (both swallowed)
+//   - nvim-cmp <C-b> scroll docs up (swallowed)
+//   - nvim's native <C-o> jump-back (swallowed)
+//   - pi's own key handling assumptions
+//
+// Rebind those mode-switch triggers off Ctrl+letter entirely so Normal
+// mode is fully transparent to nvim/pi. Use Alt+<letter> to reach these
+// Zellij modes instead (unused by nvim/pi in this config).
+keybinds {
+    shared_except "normal" "locked" {
+        bind "Enter" "Esc" { SwitchToMode "Normal"; }
+    }
+    shared_except "pane" "locked" {
+        unbind "Ctrl p"
+        bind "Alt p" { SwitchToMode "Pane"; }
+    }
+    shared_except "resize" "locked" {
+        unbind "Ctrl n"
+        bind "Alt n" { SwitchToMode "Resize"; }
+    }
+    shared_except "scroll" "locked" {
+        unbind "Ctrl s"
+        bind "Alt s" { SwitchToMode "Scroll"; }
+    }
+    shared_except "session" "locked" {
+        unbind "Ctrl o"
+        bind "Alt o" { SwitchToMode "Session"; }
+    }
+    shared_except "tab" "locked" {
+        unbind "Ctrl t"
+        bind "Alt t" { SwitchToMode "Tab"; }
+    }
+    shared_except "move" "locked" {
+        unbind "Ctrl h"
+        bind "Alt h" { SwitchToMode "Move"; }
+    }
+    shared_except "tmux" "locked" {
+        unbind "Ctrl b"
+        bind "Alt b" { SwitchToMode "Tmux"; }
+    }
+}

@@ -9,6 +9,9 @@ read-only for everyone else — only I push here.
 nvim/init.lua        Neovim 0.12+ config: Java/Gradle LSP (jdtls + Lombok),
                       nvim-dap debugging, vim-dadbod-ui, jb.nvim theme, etc.
 tmux/tmux.conf        tmux config (extended-keys/csi-u fix for pi & nvim)
+zellij/config.kdl     Zellij config (alt-key remap to avoid Ctrl+h/n/p/b/o
+                      collisions with nvim/pi, tokyo-night theme). Used
+                      on-demand alongside tmux, not a replacement for it.
 starship/starship.toml  Starship prompt (Nord palette, git, AWS profile, langs)
 CHEAT_SHEET.md        Keybindings, commands, workflows, gotchas
 TOOLING.md            Dev tooling reference: SDKMAN/Java, CLI tools, LiteLLM,
@@ -24,7 +27,7 @@ install.sh            Symlinks the above into place (idempotent, backs up
 git clone https://github.com/dlegaspi-ias/dotfiles.git ~/dotfiles
 cd ~/dotfiles
 ./install.sh          # symlink everything
-./install.sh nvim     # or just one target: nvim | tmux | starship
+./install.sh nvim     # or just one target: nvim | tmux | zellij | starship
 ```
 
 Re-running is safe — it's idempotent and backs up any existing real file as
