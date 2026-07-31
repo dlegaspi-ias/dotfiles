@@ -12,6 +12,10 @@ tmux/tmux.conf        tmux config (extended-keys/csi-u fix for pi & nvim)
 zellij/config.kdl     Zellij config (alt-key remap to avoid Ctrl+h/n/p/b/o
                       collisions with nvim/pi, tokyo-night theme). Used
                       on-demand alongside tmux, not a replacement for it.
+zsh/term-title.plugin.zsh  Vendored zsh-term-title plugin (MIT) — sets
+                      Zellij/terminal pane titles to the running command,
+                      since bare zsh (no oh-my-zsh) doesn't do this by
+                      default. See zsh/README.md.
 starship/starship.toml  Starship prompt (Nord palette, git, AWS profile, langs)
 CHEAT_SHEET.md        Keybindings, commands, workflows, gotchas
 TOOLING.md            Dev tooling reference: SDKMAN/Java, CLI tools, LiteLLM,
@@ -27,8 +31,13 @@ install.sh            Symlinks the above into place (idempotent, backs up
 git clone https://github.com/dlegaspi-ias/dotfiles.git ~/dotfiles
 cd ~/dotfiles
 ./install.sh          # symlink everything
-./install.sh nvim     # or just one target: nvim | tmux | zellij | starship
+./install.sh nvim     # or just one target: nvim | tmux | zellij | zsh | starship
 ```
+
+After `./install.sh zsh`, add this line to `~/.zshrc` (not managed by
+`install.sh` since `.zshrc` isn't tracked in this repo):
+```zsh
+source "$HOME/.zsh/plugins/zsh-term-title/term-title.plugin.zsh"
 
 Re-running is safe — it's idempotent and backs up any existing real file as
 `<path>.bak-<timestamp>` before symlinking over it.

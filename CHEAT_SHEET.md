@@ -448,3 +448,20 @@ passes through as a no-op, and Zellij's status bar never switches mode.
 | `Ctrl+g` | Toggle Locked mode (full passthrough to the app in the pane) |
 | `Alt+p` / `Alt+t` / `Alt+n` / `Alt+h` / `Alt+s` / `Alt+o` | Pane / Tab / Resize / Move / Search / Session mode (remapped off `Ctrl+*`, see gotcha above) |
 
+### Gotcha: pane title doesn't show the running process by default
+Unlike tmux's *window* auto-rename (which inspects the pty's foreground
+process directly), Zellij's pane title only updates via a standard OSC 0
+title escape sequence sent by the shell — it does no process inspection
+of its own. Confirmed empirically: `printf '\033]0;test\007'` instantly
+changes the title, but nothing fires automatically without a shell hook.
+Starship (the prompt) does not set this either — it's a separate concern.
+
+Bare zsh (no oh-my-zsh/Prezto/etc.) doesn't ship this hook by default;
+framework-based setups do (oh-my-zsh's `lib/termsupport.zsh`), which is
+why this is easy to not know about. Fixed by vendoring
+[pawel-slowik/zsh-term-title](https://github.com/pawel-slowik/zsh-term-title)
+(MIT, see `zsh/README.md` in this repo) rather than hand-rolling a
+`preexec`/`precmd` hook — it already handles job-control edge cases
+(`fg`, `fg %1`) that a naive first-word-of-command-line hook gets wrong on
+chained commands (`cd x && nvim y` would show `cd`, not `nvim`).
+
