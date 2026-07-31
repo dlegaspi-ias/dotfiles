@@ -543,6 +543,15 @@ require("lazy").setup({
 
   -- Status line
   {
+    "nvim-tree/nvim-web-devicons",
+    opts = {
+      override = {
+        java = { icon = "\u{e66d}", color = "#CC3E44", cterm_color = "167", name = "Java" },
+      },
+    },
+  },
+
+  {
     "nvim-lualine/lualine.nvim",
     dependencies = { "nvim-tree/nvim-web-devicons" },
     config = function()

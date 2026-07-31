@@ -47,6 +47,9 @@ format = '([$all_status$ahead_behind]($style) )'
 [fill]
 symbol = ' '
 
+[java]
+symbol = ' '
+
 [python]
 style = 'teal'
 symbol = ' '
