@@ -28,6 +28,17 @@ Three notification modes via `./scripts/notify.sh`:
 - **sticky** — modal dialog, blocks until dismissed, for things that must not be missed
 - **imessage** — sends via Messages.app so it reaches your iPhone. Recipient defaults to `$MACOS_NOTIFY_IMESSAGE_TO` env var (set in `~/.zshrc`, **never hardcoded into the skill file or committed anywhere shared**)
 
+**Gotcha (caused a real silent-failure bug once):** the 3rd positional
+arg means something different per mode — `banner`/`sticky` treat it as a
+**title**, but `imessage` treats it as a **recipient override**. Passing
+a title-shaped string (e.g. `"pi agent"`) as the 3rd arg to `imessage`
+silently tries to message a nonexistent buddy with that literal name and
+typically fails with no visible error/nonzero exit code. For the normal
+case, call `imessage` with only 2 args (mode + message) and let it fall
+back to the env var. `notify.sh` now warns to stderr if the recipient
+doesn't look like a phone number or email, but exit code alone still
+can't be trusted to confirm delivery — confirm with the user if unsure.
+
 First `imessage` use requires granting Automation permission in System Settings → Privacy & Security → Automation.
 
 ## Notes
