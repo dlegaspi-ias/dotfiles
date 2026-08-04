@@ -28,6 +28,7 @@ sdk install java 24.0.2-amzn    # default
 | [lazygit](https://github.com/jesseduffield/lazygit) | `brew install lazygit` | Terminal Git UI |
 | [Starship](https://starship.rs) | `brew install starship` | Shell prompt |
 | [GitHub CLI](https://cli.github.com) | `brew install gh` | GitHub from terminal |
+| [Databricks CLI](https://docs.databricks.com/en/dev-tools/cli/index.html) | `brew tap databricks/tap && brew install databricks` | Databricks workspace CLI |
 
 ## AI / LLM Tools
 
@@ -137,6 +138,72 @@ instead of a loose file here. See that repo's own README for what's in it
 and how to install/filter individual extensions/skills/prompts.
 
 ### Local Models (Ollama + LM Studio)
+
+### Databricks
+
+CLI installed via Homebrew's official tap (`brew install databricks`, not
+pip's deprecated `databricks-cli`) — see `CLI Tools` table above.
+
+**Auth profiles** (`~/.databrickscfg`, one OAuth login per workspace via
+`databricks auth login --profile <name> --host <workspace-url>`):
+
+| Profile | Workspace | Purpose |
+|---|---|---|
+| `claude` (default) | `ias-programmatic-dev.cloud.databricks.com` | Dev |
+| `prod` | `ias-programmatic-prod.cloud.databricks.com` | Prod — URL inferred from the dev hostname's naming pattern, confirmed via DNS/HTTP before use |
+
+Each profile's OAuth session is independent — `databricks auth token -p <profile>`
+mints/refreshes an access token from the CLI's own credential cache, no manual
+token copy-paste needed.
+
+**Skills**: the official [`databricks/databricks-agent-skills`](https://github.com/databricks/databricks-agent-skills)
+repo's full stable skill set (30 skills — `databricks-core`, `databricks-dbsql`,
+`databricks-jobs`, `databricks-unity-catalog`, `databricks-apps`, etc.) is
+vendored into `~/.agents/skills/` (not tracked in this repo — pulled directly
+from upstream). Not installed via `databricks aitools install` since pi isn't
+in its auto-detected agent list, but the skills are plain `SKILL.md` files
+following the same open Agent Skills standard pi implements, so they load
+fine when copied in manually. Re-sync by re-copying `skills/databricks-*`
+from that repo's `skills/` directory (not `skills/databricks-*/`  — the
+trailing slash makes `cp -R` merge dir *contents* into the destination
+instead of copying the directory itself, which silently corrupts multiple
+skills sharing generic filenames like `SKILL.md`).
+
+**MCP**: two lazy-connect entries in `~/.config/mcp/mcp.json`, pointing at
+Databricks' first-party **managed MCP servers** (Public Preview, not
+deprecated — that status applies only to the community `databrickslabs/mcp`
+repo's older Unity Catalog server, which explicitly recommends the managed
+servers as its replacement):
+
+```json
+"databricks-sql-dev": {
+  "url": "https://ias-programmatic-dev.cloud.databricks.com/api/2.0/mcp/sql",
+  "auth": "bearer",
+  "bearerToken": "!databricks auth token -p claude -o json | jq -r .access_token",
+  "lifecycle": "lazy"
+},
+"databricks-sql-prod": {
+  "url": "https://ias-programmatic-prod.cloud.databricks.com/api/2.0/mcp/sql",
+  "auth": "bearer",
+  "bearerToken": "!databricks auth token -p prod -o json | jq -r .access_token",
+  "lifecycle": "lazy"
+}
+```
+
+Key design point: `bearerToken` uses pi-mcp-adapter's `!command` prefix to
+**mint a fresh OAuth token on every connect** rather than a hardcoded PAT —
+pulls straight from the CLI's own refreshable credential cache, so it never
+goes stale like a pasted-in static token would. Each of dev/prod uses its own
+profile (`-p claude` vs `-p prod`), so there's no risk of a stale/shared
+credential crossing environments. Tool names are namespaced per server
+(`databricks_sql_dev_execute_sql` vs `databricks_sql_prod_execute_sql`), so
+there's no ambiguity about which environment a query actually hits.
+
+Other managed-MCP server types exist (Genie, AI Search, Unity Catalog
+functions) with different URL patterns under the same `/api/2.0/mcp/*`
+family — SQL was chosen first since it doesn't require pre-picking a
+catalog/schema/Genie space up front.
+
 
 Both run OpenAI-compatible local servers and are wired into pi via `~/.pi/agent/models.json` (not the litellm extension, since these are direct local servers).
 

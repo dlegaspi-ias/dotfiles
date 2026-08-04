@@ -4,6 +4,11 @@ Custom skills registered in `~/.pi/agent/skills/`. Skills are auto-discovered by
 
 > Skills are loaded at **session startup**. After adding/editing a skill, restart the pi session to pick up changes.
 
+> This doc covers custom-authored skills in `~/.pi/agent/skills/`. Vendored
+> third-party skills (e.g. the official Databricks agent skills) live in the
+> separate `~/.agents/skills/` location instead — see the **Databricks**
+> section of [TOOLING.md](TOOLING.md) for that one.
+
 ## Installed Skills
 
 | Skill | Purpose |
