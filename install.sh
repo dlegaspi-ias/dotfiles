@@ -7,7 +7,7 @@
 #
 # Usage:
 #   ./install.sh          # symlink everything
-#   ./install.sh nvim     # symlink just one target (nvim, tmux, zellij, zsh, starship)
+#   ./install.sh nvim     # symlink just one target (nvim, tmux, zellij, zsh, ghostty, starship)
 
 set -euo pipefail
 
@@ -45,6 +45,10 @@ fi
 
 if [ "$target" = "all" ] || [ "$target" = "zsh" ]; then
   link "$REPO_DIR/zsh/term-title.plugin.zsh" "$HOME/.zsh/plugins/zsh-term-title/term-title.plugin.zsh"
+fi
+
+if [ "$target" = "all" ] || [ "$target" = "ghostty" ]; then
+  link "$REPO_DIR/ghostty/config" "$HOME/.config/ghostty/config"
 fi
 
 if [ "$target" = "all" ] || [ "$target" = "starship" ]; then

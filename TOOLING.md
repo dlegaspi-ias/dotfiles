@@ -295,6 +295,49 @@ Or pick from `/model` inside a running pi session (requires a fresh session/rest
 > curl -s http://localhost:1234/api/v0/models | grep -A2 loaded_context_length
 > ```
 
+## cmux (experimental, alongside WezTerm)
+
+Native macOS terminal app (Swift/AppKit, `libghostty` rendering), built around
+running multiple AI coding agents in parallel — vertical-tab sidebar with git
+branch/PR status per workspace, notification rings, in-app browser. Installed
+purely additively, same philosophy as Zellij: **not** a replacement for
+WezTerm, kept around to try for multi-agent-parallel workflows specifically.
+
+```bash
+brew tap manaflow-ai/cmux
+brew install cmux   # needs sudo password interactively for the /Applications move
+```
+
+Reads Ghostty's config format (not `wezterm.lua`) for font/theme, since it's
+built on Ghostty's rendering engine: `~/.config/ghostty/config`
+
+```
+font-family = JetBrainsMono Nerd Font
+font-size = 14
+theme = JetBrains Darcula
+```
+
+- Font matches WezTerm's choice for consistency.
+- Theme: tried Ghostty's bundled `TokyoNight Storm` first to match WezTerm's
+  Tokyo Night scheme, but it read as too purple side-by-side; landed on
+  `JetBrains Darcula` (also bundled) instead, which ended up close to cmux's
+  own native default anyway. Note: Darcula is technically JetBrains' *legacy*
+  dark theme now — current IntelliJ default is a separate, unnamed-in-Ghostty
+  "Dark" scheme — didn't chase pixel-exact match since Darcula already looked
+  fine.
+- `theme`/`font-family` only affect terminal *pane content*. cmux's native
+  sidebar/chrome is a separate macOS UI layer with its own light/dark
+  appearance handling — check cmux's own Settings if that ever looks
+  mismatched against the terminal theme.
+- Workspaces/panes/agent sessions persist across quit by default
+  (`terminal.autoResumeAgentSessions`); `app.confirmQuit` guards against
+  losing them accidentally.
+- What you'd lose fully switching WezTerm+Zellij to cmux (not done, evaluated
+  only): Lua config power (cmux config is flatter JSON), the exact
+  Ctrl+letter keybinding-collision exercise already solved for Zellij would
+  need redoing for cmux's default `ctrl+b`-prefix chords, and project
+  maturity (launched Feb 2026, thousands of open GitHub issues at last check).
+
 ## Shell Configuration
 
 - **Shell:** zsh

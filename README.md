@@ -16,6 +16,8 @@ zsh/term-title.plugin.zsh  Vendored zsh-term-title plugin (MIT) — sets
                       Zellij/terminal pane titles to the running command,
                       since bare zsh (no oh-my-zsh) doesn't do this by
                       default. See zsh/README.md.
+ghostty/config        Font/theme for cmux (Ghostty-based terminal, evaluated
+                      alongside WezTerm+Zellij for multi-agent workflows).
 starship/starship.toml  Starship prompt (Nord palette, git, AWS profile, langs)
 CHEAT_SHEET.md        Keybindings, commands, workflows, gotchas
 TOOLING.md            Dev tooling reference: SDKMAN/Java, CLI tools, LiteLLM,
@@ -31,7 +33,7 @@ install.sh            Symlinks the above into place (idempotent, backs up
 git clone https://github.com/dlegaspi-ias/dotfiles.git ~/dotfiles
 cd ~/dotfiles
 ./install.sh          # symlink everything
-./install.sh nvim     # or just one target: nvim | tmux | zellij | zsh | starship
+./install.sh nvim     # or just one target: nvim | tmux | zellij | zsh | ghostty | starship
 ```
 
 After `./install.sh zsh`, add this line to `~/.zshrc` (not managed by
