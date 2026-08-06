@@ -484,6 +484,26 @@ require("lazy").setup({
       vim.keymap.set("n", "<leader>ff", builtin.find_files, { desc = "Find files" })
       vim.keymap.set("n", "<leader>fg", builtin.live_grep, { desc = "Live grep" })
       vim.keymap.set("n", "<leader>fb", builtin.buffers, { desc = "Buffers" })
+
+      -- Quickfix list (IntelliJ-style persistent "Find Results" panel):
+      -- Telescope's default <C-q> in a picker sends all matches here and
+      -- auto-opens this window. These keymaps are for once you're in it.
+      vim.keymap.set("n", "<leader>xq", function()
+        local qf_open = false
+        for _, win in ipairs(vim.fn.getwininfo()) do
+          if win.quickfix == 1 then
+            qf_open = true
+            break
+          end
+        end
+        if qf_open then
+          vim.cmd("cclose")
+        else
+          vim.cmd("copen")
+        end
+      end, { desc = "Toggle quickfix (find results) panel" })
+      vim.keymap.set("n", "]q", "<cmd>cnext<CR>", { desc = "Next quickfix match" })
+      vim.keymap.set("n", "[q", "<cmd>cprev<CR>", { desc = "Previous quickfix match" })
       vim.keymap.set("n", "<leader>fh", builtin.help_tags, { desc = "Help" })
       vim.keymap.set("n", "<leader>fs", builtin.lsp_document_symbols, { desc = "Document symbols" })
       vim.keymap.set("n", "<leader>fw", builtin.lsp_workspace_symbols, { desc = "Workspace symbols" })
